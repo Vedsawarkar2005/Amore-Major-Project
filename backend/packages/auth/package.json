@@ -1,0 +1,36 @@
+{
+  "name": "@amore/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./next": "./src/next.ts"
+  },
+  "scripts": {
+    "clean": "rimraf .turbo dist build coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "lint": "biome lint src",
+    "typecheck": "tsc --project tsconfig.json",
+    "test": "vitest run --root ../.. --config vitest.config.ts packages/auth/src"
+  },
+  "dependencies": {
+    "@amore/config": "workspace:*",
+    "@better-auth/drizzle-adapter": "1.7.3",
+    "better-auth": "1.7.3"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/node": "26.4.1",
+    "rimraf": "6.1.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@amore/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client/index.ts",
+    "./react": "./src/react/index.ts",
+    "./server": "./src/server/index.ts"
+  },
+  "scripts": {
+    "clean": "rimraf .turbo dist build coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "lint": "biome lint src",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@amore/auth": "workspace:*",
+    "@amore/config": "workspace:*",
+    "@amore/database": "workspace:*",
+    "@tanstack/react-query": "5.102.8",
+    "@trpc/client": "11.18.0",
+    "@trpc/server": "11.18.0",
+    "@trpc/tanstack-react-query": "11.18.0",
+    "zod": "4.5.4"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "@types/react": "19.2.18",
+    "react": "19.2.8",
+    "rimraf": "6.1.2",
+    "typescript": "7.0.2"
+  }
+}

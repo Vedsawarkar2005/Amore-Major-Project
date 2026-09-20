@@ -1,0 +1,35 @@
+{
+  "name": "@amore/env",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "exports": {
+    ".": "./src/types.ts",
+    "./shared": "./src/shared.ts",
+    "./api/validation": "./src/api/validation.ts",
+    "./store/client": "./src/store/client.ts",
+    "./store/server": "./src/store/server.ts",
+    "./store/validation": "./src/store/validation.ts",
+    "./admin/client": "./src/admin/client.ts",
+    "./admin/server": "./src/admin/server.ts",
+    "./admin/validation": "./src/admin/validation.ts"
+  },
+  "scripts": {
+    "lint": "biome lint src",
+    "clean": "rimraf .turbo dist build coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "typecheck": "tsc --project tsconfig.json",
+    "test": "vitest run --root ../.. --config vitest.config.ts packages/env/src"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "0.13.11",
+    "server-only": "0.0.1",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}

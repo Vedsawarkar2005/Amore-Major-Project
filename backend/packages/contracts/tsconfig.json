@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Shared application contracts",
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // The package exposes a runtime-neutral server contract plus an explicitly separated React adapter.
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

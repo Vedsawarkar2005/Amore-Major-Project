@@ -1,0 +1,5 @@
+/* The shared stylesheet owns Tailwind and semantic tokens; this app contributes only its sources. */
+@import "@amore/ui/styles.css";
+@source "../";
+
+/* Add admin-only styles below; reusable tokens and primitives belong in @amore/ui. */

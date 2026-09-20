@@ -1,0 +1,7 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    // Database source is consumed directly and typechecking emits no package artifacts.
+    "typecheck": { "outputs": [] }
+  }
+}

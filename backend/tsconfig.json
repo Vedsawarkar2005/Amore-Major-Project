@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Root",
+  "compilerOptions": {
+    // Keep shared defaults strict; individual workspaces can extend this file.
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
+    // Source-exported workspace modules also load through Node's native TypeScript support.
+    "allowImportingTsExtensions": true,
+    // Bun and modern app bundlers resolve modules without TypeScript rewriting imports.
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext",
+    "verbatimModuleSyntax": true
+  },
+  // Root tooling and cross-app browser tests share this config; apps check their own source.
+  "include": ["*.ts", "e2e/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
+}

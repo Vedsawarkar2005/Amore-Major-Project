@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# New commits supersede earlier runs for the same branch or pull request.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # CI executes checks directly; installing developer Git hooks is unnecessary.
+  LEFTHOOK: "0"
+  TURBO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  format-and-lint:
+    name: Format and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Node runs Next/Vitest; Bun remains the package manager and script runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check formatting, lint rules, and imports
+        run: bun run check:ci
+
+      - name: Validate Git hook configuration
+        run: bunx --no-install lefthook validate
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Type generation loads Next config; only public scaffold settings are needed.
+      NEXT_PUBLIC_APP_ENV: test
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8787
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Node runs Next/Vitest; Bun remains the package manager and script runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Check types
+        run: |
+          bunx --no-install tsc --project tsconfig.json
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 bun run typecheck:store
+          NEXT_PUBLIC_APP_URL=http://localhost:3001 bun run typecheck:admin
+          bun run typecheck:api
+          bun run typecheck:emails
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Node runs Next/Vitest; Bun remains the package manager and script runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # Vitest's default watch mode is reserved for local development.
+      - name: Run unit tests
+        run: bun run test
+
+  build:
+    name: Build (${{ matrix.app }})
+    # Independent checks run in parallel before spending time on builds.
+    needs: [format-and-lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - app: store
+            url: http://localhost:3000
+          - app: admin
+            url: http://localhost:3001
+    env:
+      # CI is validation, not a Vercel Preview deployment; keep external telemetry disabled.
+      NEXT_PUBLIC_APP_ENV: test
+      NEXT_PUBLIC_APP_URL: ${{ matrix.url }}
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8787
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Node runs Next/Vitest; Bun remains the package manager and script runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build workspaces
+        run: bun run build --filter=@amore/${{ matrix.app }}
+
+  api-build:
+    name: Build API Worker
+    needs: [format-and-lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # A dry-run bundles the production Worker without publishing it.
+      - name: Build Worker
+        run: bun run build:api
+
+  storybook:
+    name: Build Storybook
+    needs: [format-and-lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # A static build catches broken stories, addons, tokens, and package exports.
+      - name: Build the component workbench
+        run: bun run storybook:build
+
+  e2e:
+    name: End-to-end tests
+    needs: [build, api-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Node runs Next/Vitest; Bun remains the package manager and script runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Install Chromium
+        run: bunx --no-install playwright install --with-deps chromium
+      # Jobs have separate filesystems; build again for Playwright's production servers.
+      - name: Build workspaces
+        env:
+          NEXT_PUBLIC_APP_ENV: test
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:8787
+        run: |
+          NEXT_PUBLIC_APP_URL=http://localhost:3000 bun run build:store
+          NEXT_PUBLIC_APP_URL=http://localhost:3001 bun run build:admin
+      - name: Run browser tests
+        run: bun run test:e2e

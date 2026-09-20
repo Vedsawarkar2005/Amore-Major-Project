@@ -1,0 +1,76 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalDependencies": ["tsconfig.json", "biome.jsonc"],
+  "tasks": {
+    "build": {
+      "outputLogs": "new-only",
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/types/**", "next-env.d.ts"]
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
+    },
+    "clean:dependencies": {
+      "cache": false,
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:local": {
+      "dependsOn": ["//#dev:preflight"],
+      "with": ["//#dev:proxy"],
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_POSTHOG_KEY",
+        "NEXT_PUBLIC_POSTHOG_HOST",
+        "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT"
+      ]
+    },
+    "//#dev:proxy": {
+      "dependsOn": ["//#dev:preflight"],
+      "cache": false,
+      "persistent": true
+    },
+    "//#dev:preflight": {
+      "cache": false,
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/vitest.config.ts"],
+      "outputs": ["coverage/**"]
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "build-storybook": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["storybook-static/**"]
+    },
+    "preview:build": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [".react-email/**"]
+    }
+  }
+}

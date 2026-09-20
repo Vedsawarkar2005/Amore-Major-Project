@@ -1,0 +1,8 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    // Typechecking validates source only and intentionally emits no build artifacts.
+    "typecheck": { "outputs": [] },
+    "test": { "outputs": [] }
+  }
+}

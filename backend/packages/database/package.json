@@ -1,0 +1,36 @@
+{
+  "name": "@amore/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "scripts": {
+    "clean": "rimraf .turbo dist build coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "db:push": "drizzle-kit push --config drizzle.config.ts",
+    "db:check": "drizzle-kit check --config drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config drizzle.config.ts",
+    "lint": "biome lint src drizzle.config.ts",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.1.0",
+    "drizzle-orm": "0.45.2"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "better-auth": "1.7.3",
+    "drizzle-kit": "0.31.10",
+    "dotenv": "17.4.2",
+    "rimraf": "6.1.2",
+    "typescript": "7.0.2"
+  }
+}

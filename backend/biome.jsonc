@@ -1,0 +1,64 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+  "css": {
+    // Parse Tailwind v4's CSS-first directives without disabling CSS checks.
+    "parser": { "tailwindDirectives": true }
+  },
+  "vcs": {
+    // Reuse .gitignore so generated and local-only files stay outside Biome's scope.
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    // These exclusions also apply when temporary caches exist outside normal Git workflows.
+    "includes": [
+      "**",
+      "!!**/.bun-cache",
+      "!!**/.tmp",
+      "!!**/dist",
+      "!!**/build",
+      // Drizzle owns generated SQL and migration metadata; review these files without rewriting them.
+      "!!**/migrations",
+      // Claude's symlink mirrors canonical skills; exclude the mirror to avoid scanning twice.
+      "!!.claude/skills",
+      // Wrangler owns this generated runtime declaration; lint only maintained source files.
+      "!!**/worker-configuration.d.ts",
+      "!!**/.next",
+      "!!**/coverage"
+    ]
+  },
+  "formatter": {
+    // Keep formatting predictable across editors and operating systems.
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    // Start from Biome's maintained defaults before adding project-specific rules.
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "nursery": {
+        // Experimental: checks JSX class/className; run sort:classes to apply its unsafe fix.
+        "useSortedClasses": {
+          "level": "error",
+          "options": {
+            // Cover common class composition helpers used by shadcn-style components.
+            "functions": ["cn", "clsx", "cva", "tw", "tw.*"]
+          }
+        }
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        // Apply deterministic import ordering through CLI checks and editor actions.
+        "organizeImports": "on"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  // VS Code prompts team members to install the formatter used by CI and Git hooks.
+  "recommendations": ["biomejs.biome", "bradlc.vscode-tailwindcss"]
+}

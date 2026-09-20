@@ -1,0 +1,35 @@
+{
+  "name": "@amore/api-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --env production --outdir dist",
+    "clean": "rimraf .turbo .wrangler dist coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "deploy": "wrangler deploy --env production",
+    "dev": "wrangler dev",
+    "dev:local": "wrangler dev",
+    "generate-types": "wrangler types --env-interface CloudflareBindings",
+    "lint": "biome lint src wrangler.jsonc vitest.config.ts",
+    "test": "vitest run --root ../.. --config apps/api/vitest.config.ts",
+    "typecheck": "bun run generate-types && tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@amore/auth": "workspace:*",
+    "@amore/config": "workspace:*",
+    "@amore/contracts": "workspace:*",
+    "@amore/database": "workspace:*",
+    "@amore/env": "workspace:*",
+    "@trpc/server": "11.18.0",
+    "hono": "4.13.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "rimraf": "6.1.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0",
+    "wrangler": "4.129.0"
+  }
+}

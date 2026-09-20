@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./themes.css";
+@import "./typeset.css";
+
+/* Scan source-exported components when Tailwind runs from a consuming application. */
+@source "../";

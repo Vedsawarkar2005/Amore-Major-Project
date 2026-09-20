@@ -1,0 +1,32 @@
+{
+  "name": "@amore/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./events": "./src/events.ts",
+    "./posthog/client": "./src/posthog/client.ts",
+    "./posthog/server": "./src/posthog/server.ts",
+    "./ga4/client": "./src/ga4/client.ts",
+    "./ga4/events": "./src/ga4/events.ts"
+  },
+  "scripts": {
+    "clean": "rimraf .turbo dist build coverage *.tsbuildinfo",
+    "clean:dependencies": "rimraf node_modules",
+    "lint": "biome lint src",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "posthog-js": "1.427.2",
+    "posthog-node": "5.51.6"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}
