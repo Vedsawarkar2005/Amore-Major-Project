@@ -1,7 +1,0 @@
-{
-  "extends": ["//"],
-  "tasks": {
-    // This source-exported package emits no build or typecheck artifacts.
-    "typecheck": { "outputs": [] }
-  }
-}

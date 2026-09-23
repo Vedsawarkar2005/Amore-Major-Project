@@ -1,7 +1,0 @@
-{
-  "extends": ["//"],
-  "tasks": {
-    "typecheck": { "outputs": [] },
-    "build-storybook": { "outputs": ["storybook-static/**"] }
-  }
-}

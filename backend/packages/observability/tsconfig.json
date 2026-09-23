@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    // This package is framework-neutral and does not require DOM, Node, or React globals.
-    "lib": ["ESNext"]
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
-}
