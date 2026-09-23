@@ -1,0 +1,21 @@
+{
+  "name": "amore-full-web",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"API,WEB\" -c \"magenta,cyan\" \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "install:all": "npm install"
+  },
+  "allowScripts": {
+    "unrs-resolver": true
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
