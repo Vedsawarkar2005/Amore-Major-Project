@@ -52,6 +52,13 @@ export default function TryOnStudioPage() {
   const animFrameIdRef = useRef<number | null>(null);
   const imageElementRef = useRef<HTMLImageElement | null>(null);
 
+  // Refs that mirror live state so the camera loop always reads the latest
+  // values without restarting the stream on every shade / opacity change.
+  const activeShadeRef = useRef<Shade | undefined>(undefined);
+  const opacityRef = useRef(opacity);
+  const finishRef = useRef(selectedFinish);
+  const showOriginalRef = useRef(showOriginal);
+
   // Default shade selection
   useEffect(() => {
     if (shades.length > 0 && !selectedShadeId) {
@@ -62,6 +69,12 @@ export default function TryOnStudioPage() {
 
   const activeShade: Shade | undefined =
     shades.find((s) => s.id === selectedShadeId) || shades[0];
+
+  // Keep refs in sync so the rAF loop always reads the latest values.
+  useEffect(() => { activeShadeRef.current = activeShade; }, [activeShade]);
+  useEffect(() => { opacityRef.current = opacity; }, [opacity]);
+  useEffect(() => { finishRef.current = selectedFinish; }, [selectedFinish]);
+  useEffect(() => { showOriginalRef.current = showOriginal; }, [showOriginal]);
 
   // Communicate with Express backend try-on route when shade changes
   useEffect(() => {
@@ -221,9 +234,19 @@ export default function TryOnStudioPage() {
               canvas.height = video.videoHeight;
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Read current values from refs so the rAF loop doesn't need
+            // to capture stale closure values.
+            const currentShade = activeShadeRef.current;
+            const currentOpacity = opacityRef.current;
+            const currentFinish = finishRef.current;
+            const currentShowOriginal = showOriginalRef.current;
 
-            if (!showOriginal && activeShade) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // ↓ Draw the live video frame so applyLipstick's getImageData
+            //   returns real RGB+alpha pixels instead of transparent zeros.
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            if (!currentShowOriginal && currentShade) {
               const now = performance.now();
               const result = landmarker.detectForVideo(video, now);
 
@@ -237,9 +260,9 @@ export default function TryOnStudioPage() {
                 );
 
                 applyLipstick(ctx, lipMask, canvas.width, canvas.height, {
-                  color: activeShade.hex,
-                  finish: selectedFinish,
-                  opacity: opacity,
+                  color: currentShade.hex,
+                  finish: currentFinish,
+                  opacity: currentOpacity,
                 });
               }
             }
@@ -272,7 +295,11 @@ export default function TryOnStudioPage() {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [mode, activeShade, selectedFinish, opacity, showOriginal]);
+  // Only restart the camera stream when switching in/out of CAMERA mode.
+  // Shade, opacity, and finish changes are handled via refs above.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
 
   // Snapshot / Download feature
   const handleDownloadSnapshot = () => {
