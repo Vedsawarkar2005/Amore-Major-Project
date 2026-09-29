@@ -11,8 +11,20 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Configure CORS and JSON parsing middleware
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // fallback allow or restrict if desired
+    }
+  },
   credentials: true
 }));
 
