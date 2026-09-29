@@ -1,37 +1,8 @@
 import bcrypt from 'bcryptjs';
+import { fileURLToPath } from 'url';
 import { db } from './db.js';
 
-console.log('Seeding database at apps/api/data/amore.db...');
-
-// Clear existing data in users and products
-db.prepare('DELETE FROM users').run();
-db.prepare('DELETE FROM products').run();
-
-try {
-  db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users', 'products')").run();
-} catch (e) {
-  // sqlite_sequence table may not exist yet if no autoincrement rows were created
-}
-
-console.log('Cleared existing users and products data.');
-
-// 1. Insert admin and test user
-const adminPasswordHash = bcrypt.hashSync('admin123', 10);
-const userPasswordHash = bcrypt.hashSync('user123', 10);
-
-const insertUser = db.prepare(
-  'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-);
-
-insertUser.run('Admin User', 'admin@amorecosmetics.in', adminPasswordHash, 'ADMIN');
-insertUser.run('Test User', 'client@amorecosmetics.in', userPasswordHash, 'CUSTOMER');
-
-console.log('Inserted admin and test users:');
-console.log(' - Admin: admin@amorecosmetics.in / admin123 (Role: ADMIN)');
-console.log(' - Customer: client@amorecosmetics.in / user123 (Role: CUSTOMER)');
-
-// 2. Insert 12 mock lipstick products (HVL001 to HVL012)
-const lipsticks = [
+export const lipsticks = [
   {
     sku: 'HVL001',
     name: 'Velvet Ruby',
@@ -118,25 +89,75 @@ const lipsticks = [
   }
 ];
 
-const insertProduct = db.prepare(
-  'INSERT INTO products (sku, name, description, price, shade_hex, image_url, stock) VALUES (?, ?, ?, ?, ?, ?, ?)'
-);
+export function seedDatabase({ force = true } = {}) {
+  console.log('Seeding database at apps/api/data/amore.db...');
 
-const seedLipsticks = db.transaction((items) => {
-  for (const item of items) {
-    insertProduct.run(
-      item.sku,
-      item.name,
-      item.description,
-      349.00,
-      item.shade_hex,
-      item.image_url,
-      50
-    );
+  if (force) {
+    db.prepare('DELETE FROM users').run();
+    db.prepare('DELETE FROM products').run();
+    try {
+      db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users', 'products')").run();
+    } catch (e) {
+      // sqlite_sequence table may not exist yet
+    }
   }
-});
 
-seedLipsticks(lipsticks);
+  // Ensure default users exist
+  const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get();
+  if (force || !existingUsers || existingUsers.count === 0) {
+    const adminPasswordHash = bcrypt.hashSync('admin123', 10);
+    const userPasswordHash = bcrypt.hashSync('user123', 10);
 
-console.log(`Inserted ${lipsticks.length} mock lipstick products (HVL001 - HVL012) at price 349.00 and stock 50.`);
-console.log('Database seeding completed successfully.');
+    const insertUser = db.prepare(
+      'INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
+    );
+
+    insertUser.run('Admin User', 'admin@amorecosmetics.in', adminPasswordHash, 'ADMIN');
+    insertUser.run('Test User', 'client@amorecosmetics.in', userPasswordHash, 'CUSTOMER');
+    console.log('Inserted default users (Admin + Customer).');
+  }
+
+  // Ensure products exist
+  const existingProducts = db.prepare('SELECT COUNT(*) as count FROM products').get();
+  if (force || !existingProducts || existingProducts.count === 0) {
+    const insertProduct = db.prepare(
+      'INSERT OR IGNORE INTO products (sku, name, description, price, shade_hex, image_url, stock) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+
+    const seedLipsticks = db.transaction((items) => {
+      for (const item of items) {
+        insertProduct.run(
+          item.sku,
+          item.name,
+          item.description,
+          349.00,
+          item.shade_hex,
+          item.image_url,
+          50
+        );
+      }
+    });
+
+    seedLipsticks(lipsticks);
+    console.log(`Inserted ${lipsticks.length} mock lipstick products (HVL001 - HVL012).`);
+  }
+
+  console.log('Database seeding verified successfully.');
+}
+
+export function ensureSeeded() {
+  try {
+    const row = db.prepare('SELECT COUNT(*) as count FROM products').get();
+    if (!row || row.count === 0) {
+      console.log('Database is empty. Running automatic seed on startup...');
+      seedDatabase({ force: false });
+    }
+  } catch (err) {
+    console.warn('Could not verify database seed state:', err);
+  }
+}
+
+// Run directly if called as a script
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('src/seed.js')) {
+  seedDatabase({ force: true });
+}

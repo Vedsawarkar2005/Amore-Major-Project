@@ -1,10 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import { db } from './db.js';
+import { ensureSeeded } from './seed.js';
 import authRouter from './routes/auth.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import tryonRouter from './routes/tryon.js';
+
+// Auto-seed database if empty (e.g. fresh Render container or restart)
+ensureSeeded();
 
 // Initialize Express server
 const app = express();
@@ -30,14 +34,15 @@ app.use(cors({
 
 app.use(express.json({ limit: '25mb' }));
 
-// Register API Routes
-app.use('/api/auth', authRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/tryon', tryonRouter);
+// Register API Routes — support both with and without /api prefix
+// This ensures frontend works even if NEXT_PUBLIC_API_URL is configured without /api
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/products', '/products'], productsRouter);
+app.use(['/api/orders', '/orders'], ordersRouter);
+app.use(['/api/tryon', '/tryon'], tryonRouter);
 
 // Health-check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health', '/'], (req, res) => {
   res.json({
     status: 'ok',
     timestamp: Date.now()

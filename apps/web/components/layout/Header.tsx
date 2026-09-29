@@ -19,31 +19,11 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { Product } from "@/lib/types";
-import { fetchProducts, ApiProduct } from "@/lib/api";
+import { fetchProducts, mapApiToProduct, ApiProduct } from "@/lib/api";
 import { formatINR, generateProductSlug } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { CartDrawer } from "../shop/CartDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
-
-/** Map a raw API product to the frontend Product shape */
-function mapApiToProduct(p: ApiProduct): Product {
-  return {
-    id: String(p.id),
-    name: p.name,
-    slug: generateProductSlug(p.sku),
-    sku: p.sku,
-    price: p.price,
-    category: "Lips",
-    collection: "HydraCream Series",
-    image_url: p.image_url,
-    shade_name: p.name,
-    shade_hex: p.shade_hex || "#9B111E",
-    description: p.description || "",
-    how_to_use: "",
-    ingredients: "",
-    in_stock: p.stock > 0,
-  };
-}
 
 export const Header: React.FC = () => {
   const pathname = usePathname();

@@ -1,5 +1,18 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { FALLBACK_PRODUCTS } from './products-fallback';
+
+/**
+ * Normalizes the API base URL to ensure consistency regardless of trailing slashes
+ * or whether the user entered the root domain or the /api path.
+ */
+function normalizeApiUrl(raw?: string): string {
+  if (!raw || !raw.trim()) {
+    return 'http://localhost:8000/api';
+  }
+  const clean = raw.trim().replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+}
+
+export const API_BASE_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
 
 const TOKEN_KEY = 'amore_auth_token';
 const USER_KEY = 'amore_auth_user';
@@ -21,6 +34,30 @@ export interface ApiProduct {
   shade_hex: string;
   image_url: string;
   stock: number;
+}
+
+import type { Product } from './types';
+import { generateProductSlug } from './utils';
+
+/** Map a raw API product to the frontend Product shape */
+export function mapApiToProduct(p: ApiProduct): Product {
+  return {
+    id: String(p.id),
+    name: p.name.startsWith('Hydravelvet') ? p.name : `Hydravelvet Lipstick – ${p.name}`,
+    slug: generateProductSlug(p.sku),
+    sku: p.sku,
+    price: p.price,
+    category: "Lips",
+    collection: "HydraCream Series",
+    image_url: p.image_url,
+    shade_name: p.name,
+    shade_hex: p.shade_hex || "#9B111E",
+    description: p.description || "",
+    how_to_use: "",
+    ingredients: "",
+    in_stock: p.stock > 0,
+    is_featured: true,
+  };
 }
 
 export interface CreateOrderPayload {
@@ -120,35 +157,82 @@ function getHeaders(includeAuth = false): HeadersInit {
 
 // 1. Fetch Products
 export async function fetchProducts(): Promise<ApiProduct[]> {
-  const res = await fetch(`${API_BASE_URL}/products`, {
-    method: 'GET',
-    headers: getHeaders(false),
-    cache: 'no-store',
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/products`, {
+      method: 'GET',
+      headers: getHeaders(false),
+      cache: 'no-store',
+    });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products: ${res.statusText}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.products) && data.products.length > 0) {
+        return data.products;
+      }
+    }
+
+    // If 404 or not ok, try alternative URL (e.g. without /api or with /api)
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/products`, {
+      method: 'GET',
+      headers: getHeaders(false),
+      cache: 'no-store',
+    });
+
+    if (altRes.ok) {
+      const altData = await altRes.json();
+      if (Array.isArray(altData.products) && altData.products.length > 0) {
+        return altData.products;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend API unreachable or sleeping (Render cold-start). Using fallback catalog:', err);
   }
 
-  const data = await res.json();
-  return data.products || [];
+  // Resilient fallback so products are always displayed even during cold-starts or network delays
+  return FALLBACK_PRODUCTS;
 }
 
 // 2. Fetch Single Product
 export async function fetchProductBySku(sku: string): Promise<ApiProduct | null> {
-  const res = await fetch(`${API_BASE_URL}/products/${encodeURIComponent(sku)}`, {
-    method: 'GET',
-    headers: getHeaders(false),
-    cache: 'no-store',
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/products/${encodeURIComponent(sku)}`, {
+      method: 'GET',
+      headers: getHeaders(false),
+      cache: 'no-store',
+    });
 
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error(`Failed to fetch product ${sku}: ${res.statusText}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.product) return data.product;
+    }
+
+    // Try alternate base if first attempt failed
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/products/${encodeURIComponent(sku)}`, {
+      method: 'GET',
+      headers: getHeaders(false),
+      cache: 'no-store',
+    });
+
+    if (altRes.ok) {
+      const altData = await altRes.json();
+      if (altData.product) return altData.product;
+    }
+  } catch (err) {
+    console.warn(`Backend API unreachable for SKU ${sku}:`, err);
   }
 
-  const data = await res.json();
-  return data.product || null;
+  const fallback = FALLBACK_PRODUCTS.find(
+    (p) => p.sku.toLowerCase() === sku.toLowerCase()
+  );
+  return fallback || null;
 }
 
 // 3. User Login

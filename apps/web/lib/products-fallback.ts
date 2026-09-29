@@ -1,0 +1,133 @@
+export interface FallbackProduct {
+  id: number;
+  sku: string;
+  name: string;
+  description: string;
+  price: number;
+  shade_hex: string;
+  image_url: string;
+  stock: number;
+}
+
+export const FALLBACK_PRODUCTS: FallbackProduct[] = [
+  {
+    id: 1,
+    sku: "HVL001",
+    name: "Velvet Ruby",
+    description: "Rich classic red with a luxurious velvety matte finish.",
+    price: 349,
+    shade_hex: "#9B111E",
+    image_url: "/images/products/hvl001.jpg",
+    stock: 50,
+  },
+  {
+    id: 2,
+    sku: "HVL002",
+    name: "Rose Petal",
+    description: "Soft delicate rose nude designed for everyday elegance.",
+    price: 349,
+    shade_hex: "#C08081",
+    image_url: "/images/products/hvl002.jpg",
+    stock: 50,
+  },
+  {
+    id: 3,
+    sku: "HVL003",
+    name: "Crimson Luxe",
+    description: "Deep burgundy crimson for bold and sophisticated evening looks.",
+    price: 349,
+    shade_hex: "#800020",
+    image_url: "/images/products/hvl003.jpg",
+    stock: 50,
+  },
+  {
+    id: 4,
+    sku: "HVL004",
+    name: "Mauve Whisper",
+    description: "Subtle dusty mauve shade with a hydrating satin texture.",
+    price: 349,
+    shade_hex: "#9E5E6F",
+    image_url: "/images/products/hvl004.jpg",
+    stock: 50,
+  },
+  {
+    id: 5,
+    sku: "HVL005",
+    name: "Coral Bloom",
+    description: "Vibrant coral pink that instantly illuminates all skin tones.",
+    price: 349,
+    shade_hex: "#E55B5B",
+    image_url: "/images/products/hvl005.jpg",
+    stock: 50,
+  },
+  {
+    id: 6,
+    sku: "HVL006",
+    name: "Berry Crush",
+    description: "Juicy berry tone with ultra-pigmented full-coverage payoff.",
+    price: 349,
+    shade_hex: "#6C244C",
+    image_url: "/images/products/hvl006.jpg",
+    stock: 50,
+  },
+  {
+    id: 7,
+    sku: "HVL007",
+    name: "Nude Truffle",
+    description: "Warm terracotta nude for an effortless, chic modern aesthetic.",
+    price: 349,
+    shade_hex: "#B87B64",
+    image_url: "/images/products/hvl007.jpg",
+    stock: 50,
+  },
+  {
+    id: 8,
+    sku: "HVL008",
+    name: "Plum Royale",
+    description: "Regal deep plum delivering intense drama and long-lasting wear.",
+    price: 349,
+    shade_hex: "#4E1A3D",
+    image_url: "/images/products/hvl008.jpg",
+    stock: 50,
+  },
+  {
+    id: 9,
+    sku: "HVL009",
+    name: "Peachy Keen",
+    description: "Light sweet peach shade with a silky smooth satin formulation.",
+    price: 349,
+    shade_hex: "#F69988",
+    image_url: "/images/products/hvl009.jpg",
+    stock: 50,
+  },
+  {
+    id: 10,
+    sku: "HVL010",
+    name: "Scarlet Allure",
+    description: "Intense fiery scarlet red making an unforgettable bold statement.",
+    price: 349,
+    shade_hex: "#D32F2F",
+    image_url: "/images/products/hvl010.jpg",
+    stock: 50,
+  },
+  {
+    id: 11,
+    sku: "HVL011",
+    name: "Spiced Mocha",
+    description: "Cozy chocolate-cinnamon brown delivering warm nude richness.",
+    price: 349,
+    shade_hex: "#7A3E31",
+    image_url: "/images/products/hvl011.jpg",
+    stock: 50,
+  },
+  {
+    id: 12,
+    sku: "HVL012",
+    name: "Dusty Dahlia",
+    description: "Muted flower-inspired pinkish rose shade for subtle, soft glam.",
+    price: 349,
+    shade_hex: "#B25368",
+    image_url: "/images/products/hvl012.jpg",
+    stock: 50,
+  },
+];
