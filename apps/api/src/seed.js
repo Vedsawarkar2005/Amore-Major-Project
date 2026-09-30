@@ -161,6 +161,11 @@ export async function initSchema() {
  * Seeds the PostgreSQL database with HydraVelvet products and initial users
  */
 export async function seedDatabase({ force = true } = {}) {
+  if (!process.env.DATABASE_URL) {
+    console.warn('DATABASE_URL environment variable is not set. Skipping seed.');
+    return;
+  }
+
   console.log('Seeding PostgreSQL database...');
   await initSchema();
 
