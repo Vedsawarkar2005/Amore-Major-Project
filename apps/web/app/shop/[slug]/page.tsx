@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { fetchProducts, fetchProductBySku, mapApiToProduct, ApiProduct } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { generateProductSlug } from "@/lib/utils";
-import { ProductDetailView } from "./ProductDetailView";
+import { ProductDetailView } from "@/components/shop/ProductDetailView";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

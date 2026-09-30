@@ -37,6 +37,8 @@ import {
   AdminInventoryProduct,
 } from "@/lib/api";
 import { formatINR } from "@/lib/utils";
+import { AdminKpiCards } from "@/components/admin/AdminKpiCards";
+import { AdminCryptoInspector } from "@/components/admin/AdminCryptoInspector";
 
 export default function AdminDashboardPage() {
   const { user, token, isAuthenticated, isLoading: authLoading, openAuthModal, logout } = useAuth();
@@ -394,98 +396,14 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ================================================================= */}
-        {/* KPI Metrics: Flat Warm Cards with Subtle Hairline Borders */}
+        {/* KPI Metrics: Modular Admin KPI Cards Component */}
         {/* ================================================================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Registered Users */}
-          <div className="bg-white border border-neutral-200 p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-neutral-500">
-                Registered Users
-              </span>
-              <Users className="w-4 h-4 text-neutral-400 stroke-[1.5]" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-serif text-neutral-900 font-light">
-                {metrics?.total_users ?? metrics?.totalUsers ?? (loadingData ? "—" : users.length)}
-              </span>
-              <span className="text-[10px] uppercase font-mono tracking-wider text-neutral-400">
-                Accounts
-              </span>
-            </div>
-            <p className="text-[11px] text-neutral-500 font-light tracking-wide flex items-center gap-1.5 pt-1 border-t border-neutral-100">
-              <Shield className="w-3 h-3 text-neutral-400" />
-              <span>AES-256 encrypted fields</span>
-            </p>
-          </div>
-
-          {/* Total Orders */}
-          <div className="bg-white border border-neutral-200 p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-neutral-500">
-                Total Orders
-              </span>
-              <ShoppingBag className="w-4 h-4 text-neutral-400 stroke-[1.5]" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-serif text-neutral-900 font-light">
-                {metrics?.total_orders ?? metrics?.totalOrders ?? (loadingData ? "—" : 0)}
-              </span>
-              <span className="text-[10px] uppercase font-mono tracking-wider text-neutral-400">
-                Lifetime
-              </span>
-            </div>
-            <p className="text-[11px] text-neutral-500 font-light tracking-wide pt-1 border-t border-neutral-100">
-              <span>{recentOrders.length} recent orders recorded</span>
-            </p>
-          </div>
-
-          {/* Total Revenue */}
-          <div className="bg-white border border-neutral-200 p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-neutral-500">
-                Total Revenue
-              </span>
-              <TrendingUp className="w-4 h-4 text-neutral-400 stroke-[1.5]" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-serif text-neutral-900 font-light">
-                {metrics?.total_revenue !== undefined
-                  ? formatINR(metrics.total_revenue)
-                  : metrics?.totalRevenue !== undefined
-                  ? formatINR(metrics.totalRevenue)
-                  : loadingData
-                  ? "—"
-                  : "₹0"}
-              </span>
-            </div>
-            <p className="text-[11px] text-neutral-500 font-light tracking-wide pt-1 border-t border-neutral-100">
-              <span>Gross settled order volume</span>
-            </p>
-          </div>
-
-          {/* Low Stock Products */}
-          <div className="bg-white border border-neutral-200 p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-neutral-500">
-                Low Stock Alerts
-              </span>
-              <AlertTriangle className="w-4 h-4 text-amber-500 stroke-[1.5]" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-serif text-neutral-900 font-light">
-                {metrics?.low_stock_products ?? metrics?.lowStockProducts ?? (loadingData ? "—" : 0)}
-              </span>
-              <span className="text-[10px] uppercase font-mono tracking-wider text-neutral-400">
-                Items ≤ 20
-              </span>
-            </div>
-            <p className="text-[11px] text-neutral-500 font-light tracking-wide pt-1 border-t border-neutral-100 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span>Real-time catalog stock</span>
-            </p>
-          </div>
-        </div>
+        <AdminKpiCards
+          metrics={metrics}
+          loadingData={loadingData}
+          usersCount={users.length}
+          recentOrdersCount={recentOrders.length}
+        />
 
         {/* ================================================================= */}
         {/* Navigation Tabs (Minimalist Luxury Styling) */}
@@ -1086,150 +1004,13 @@ export default function AdminDashboardPage() {
       </main>
 
       {/* ===================================================================== */}
-      {/* Cryptographic Inspector Modal (Luxury Editorial Styling) */}
+      {/* Cryptographic Inspector Modal (Modular Admin Component) */}
       {/* ===================================================================== */}
-      {inspectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-6">
-          <div className="bg-white border border-neutral-200 max-w-2xl w-full p-8 shadow-2xl animate-in fade-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-200 mb-6">
-              <div>
-                <h3 className="font-serif uppercase tracking-tight text-neutral-900 text-lg">
-                  Cryptographic Payload Inspector
-                </h3>
-                <p className="text-xs uppercase tracking-widest text-neutral-500 font-mono mt-0.5">
-                  User ID #{inspectedUser.id} • {inspectedUser.email}
-                </p>
-              </div>
-              <button
-                onClick={() => setInspectedUser(null)}
-                className="p-1 text-neutral-400 hover:text-black transition-colors"
-                aria-label="Close inspector"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-6 text-xs font-mono">
-              {/* Phone Breakdown */}
-              <div className="p-4 bg-neutral-50 border border-neutral-200 space-y-3">
-                <div className="flex items-center justify-between text-neutral-900 font-sans uppercase font-medium tracking-wider text-[11px]">
-                  <span className="flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-neutral-600" /> Phone Cryptographic Structure
-                  </span>
-                  <span className="text-[10px] text-neutral-500 font-mono">AES-256-GCM</span>
-                </div>
-
-                {inspectedUser.encrypted_phone ? (
-                  (() => {
-                    const { iv, authTag, ciphertext } = parsePayload(inspectedUser.encrypted_phone);
-                    return (
-                      <div className="space-y-2 text-[11px]">
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            Initialization Vector (16 bytes / IV):
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {iv}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            GCM Authentication Tag (16 bytes):
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {authTag}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            AES-256 Ciphertext:
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {ciphertext}
-                          </div>
-                        </div>
-                        <div className="pt-2 border-t border-neutral-200">
-                          <span className="text-neutral-900 uppercase tracking-wider text-[10px] font-semibold">
-                            Decrypted Plaintext Output:
-                          </span>
-                          <div className="p-2.5 bg-emerald-50/60 border border-emerald-200 text-emerald-900 font-semibold text-xs mt-1">
-                            {inspectedUser.phone || inspectedUser.decrypted_phone || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <p className="text-neutral-400 italic">No phone encrypted for this record.</p>
-                )}
-              </div>
-
-              {/* Address Breakdown */}
-              <div className="p-4 bg-neutral-50 border border-neutral-200 space-y-3">
-                <div className="flex items-center justify-between text-neutral-900 font-sans uppercase font-medium tracking-wider text-[11px]">
-                  <span className="flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-neutral-600" /> Address Cryptographic Structure
-                  </span>
-                  <span className="text-[10px] text-neutral-500 font-mono">AES-256-GCM</span>
-                </div>
-
-                {inspectedUser.encrypted_address ? (
-                  (() => {
-                    const { iv, authTag, ciphertext } = parsePayload(inspectedUser.encrypted_address);
-                    return (
-                      <div className="space-y-2 text-[11px]">
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            Initialization Vector (16 bytes / IV):
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {iv}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            GCM Authentication Tag (16 bytes):
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {authTag}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                            AES-256 Ciphertext:
-                          </span>
-                          <div className="p-2 bg-white border border-neutral-200 text-neutral-700 mt-1 break-all">
-                            {ciphertext}
-                          </div>
-                        </div>
-                        <div className="pt-2 border-t border-neutral-200">
-                          <span className="text-neutral-900 uppercase tracking-wider text-[10px] font-semibold">
-                            Decrypted Plaintext Output:
-                          </span>
-                          <div className="p-2.5 bg-emerald-50/60 border border-emerald-200 text-emerald-900 font-semibold text-xs mt-1">
-                            {inspectedUser.address || inspectedUser.decrypted_address || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <p className="text-neutral-400 italic">No address encrypted for this record.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setInspectedUser(null)}
-                className="py-2.5 px-6 bg-black text-white text-xs uppercase tracking-widest font-medium hover:bg-neutral-800 transition-colors"
-              >
-                Close Inspector
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminCryptoInspector
+        user={inspectedUser}
+        onClose={() => setInspectedUser(null)}
+        parsePayload={parsePayload}
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import tryonRouter from './routes/tryon.js';
 import adminRouter from './routes/admin.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 // Auto-seed database if empty (e.g. fresh container or restart)
 ensureSeeded();
@@ -81,6 +82,9 @@ app.post(['/api/seed', '/seed'], async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Centralized error handler
+app.use(errorHandler);
 
 // Start listening if run directly
 app.listen(PORT, () => {

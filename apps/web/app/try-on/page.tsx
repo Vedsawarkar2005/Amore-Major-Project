@@ -30,7 +30,23 @@ import {
   FinishType,
 } from "@/lib/tryon/lips/realistic-lipstickRenderer";
 import { Shade, useShades } from "@/lib/shades/shadesStore";
-import { TryOnCanvas, TryOnMode } from "@/components/tryon/TryOnCanvas";
+import dynamic from "next/dynamic";
+import type { TryOnMode, TryOnCanvasProps } from "@/components/tryon/TryOnCanvas";
+
+const TryOnCanvas = dynamic<TryOnCanvasProps>(
+  () => import("@/components/tryon/TryOnCanvas").then((mod) => mod.TryOnCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-neutral-900 rounded-2xl flex flex-col items-center justify-center text-white border border-neutral-800">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-600 border-t-white animate-spin mb-3" />
+        <p className="text-xs uppercase tracking-widest text-neutral-400 font-sans">
+          Initializing Vision Engine...
+        </p>
+      </div>
+    ),
+  }
+);
 import {
   fetchRecommendations,
   processTryOn,
