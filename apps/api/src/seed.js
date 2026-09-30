@@ -260,6 +260,7 @@ export async function ensureSeeded() {
     return;
   }
   try {
+    await initSchema();
     const res = await pool.query('SELECT COUNT(*) as count FROM products');
     if (!res.rows[0] || parseInt(res.rows[0].count, 10) === 0) {
       console.log('Database empty. Running automatic seed on startup...');

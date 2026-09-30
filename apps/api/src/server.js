@@ -4,7 +4,7 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import { pool, query, db } from './db.js';
-import { ensureSeeded } from './seed.js';
+import { ensureSeeded, seedDatabase } from './seed.js';
 import authRouter from './routes/auth.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
@@ -50,6 +50,22 @@ app.get(['/api/health', '/health', '/'], (req, res) => {
     status: 'ok',
     timestamp: Date.now(),
   });
+});
+
+// Seed endpoint (for environments without shell access like Render Free tier)
+app.post(['/api/seed', '/seed'], async (req, res) => {
+  const secret = req.query.secret || req.headers['x-seed-secret'] || req.body?.secret;
+  if (process.env.SEED_SECRET && secret !== process.env.SEED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized: invalid seed secret' });
+  }
+  try {
+    const force = req.query.force === 'true' || req.body?.force === true;
+    await seedDatabase({ force });
+    res.json({ success: true, message: 'Database seeded successfully' });
+  } catch (err) {
+    console.error('Seed endpoint error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Start listening if run directly
