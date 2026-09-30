@@ -3,6 +3,8 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './auth.js';
 import { pool, query, db } from './db.js';
 import { ensureSeeded, seedDatabase } from './seed.js';
 import authRouter from './routes/auth.js';
@@ -18,7 +20,7 @@ ensureSeeded();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Configure CORS and JSON parsing middleware
+// Configure CORS middleware
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.FRONTEND_URL,
@@ -36,6 +38,24 @@ app.use(cors({
   credentials: true,
 }));
 
+// Forward Better Auth endpoints if called without /auth prefix (e.g. when baseURL is configured with /api)
+app.use((req, res, next) => {
+  if (
+    req.url.startsWith('/api/sign-in') ||
+    req.url.startsWith('/api/sign-up') ||
+    req.url.startsWith('/api/sign-out') ||
+    req.url.startsWith('/api/get-session') ||
+    req.url.startsWith('/api/session')
+  ) {
+    req.url = req.url.replace('/api', '/api/auth');
+  }
+  next();
+});
+
+// Better Auth route handler - MUST be mounted before express.json() to prevent stream consumption issues
+app.all(['/api/auth', '/api/auth/*'], toNodeHandler(auth));
+
+// Express body parsers
 app.use(express.json({ limit: '25mb' }));
 
 // Register API Routes — support both with and without /api prefix

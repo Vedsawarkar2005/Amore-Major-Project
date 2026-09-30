@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import { hashPassword } from 'better-auth/crypto';
 import { pool } from './db.js';
 import { encrypt } from './utils/crypto.js';
 
@@ -147,7 +147,7 @@ export const lipsticks = [
 ];
 
 /**
- * Initializes database tables using schema.sql
+ * Initializes database tables using schema.sql and ensures compatibility views
  */
 export async function initSchema() {
   const schemaPath = path.join(__dirname, 'schema.sql');
@@ -155,10 +155,32 @@ export async function initSchema() {
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     await pool.query(schemaSql);
   }
+
+  // Ensure compatibility: drop legacy users table if it exists as a base table and create view
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'users' AND table_type = 'BASE TABLE'
+      ) THEN
+        DROP TABLE users CASCADE;
+      END IF;
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'user_id' AND data_type <> 'text'
+      ) THEN
+        ALTER TABLE orders ALTER COLUMN user_id TYPE TEXT;
+      END IF;
+    END $$;
+    CREATE OR REPLACE VIEW users AS 
+      SELECT "id", "name", "email", "role", "encrypted_phone", "encrypted_address", "createdAt" AS created_at 
+      FROM "user";
+  `);
 }
 
 /**
- * Seeds the PostgreSQL database with HydraVelvet products and initial users
+ * Seeds the PostgreSQL database with HydraVelvet products and initial Better Auth users
  */
 export async function seedDatabase({ force = true } = {}) {
   if (!process.env.DATABASE_URL) {
@@ -166,53 +188,74 @@ export async function seedDatabase({ force = true } = {}) {
     return;
   }
 
-  console.log('Seeding PostgreSQL database...');
+  console.log('Seeding PostgreSQL database with Better Auth schema...');
   await initSchema();
 
   if (force) {
-    await pool.query('TRUNCATE TABLE order_items, orders, products, users RESTART IDENTITY CASCADE;');
+    await pool.query('TRUNCATE TABLE order_items, orders, products, verification, "account", "session", "user" CASCADE;');
   }
 
   // Ensure default users exist
-  const existingUsersRes = await pool.query('SELECT COUNT(*) as count FROM users');
+  const existingUsersRes = await pool.query('SELECT COUNT(*) as count FROM "user"');
   const userCount = parseInt(existingUsersRes.rows[0]?.count || '0', 10);
 
   if (force || userCount === 0) {
-    const adminPasswordHash = await bcrypt.hash('admin123', 10);
-    const userPasswordHash = await bcrypt.hash('user123', 10);
+    const adminPasswordHash = await hashPassword('admin123');
+    const userPasswordHash = await hashPassword('user123');
 
     const adminPhoneEnc = encrypt('+91 98765 43210');
     const adminAddressEnc = encrypt('Amore HQ, 101 Fashion Blvd, Mumbai, MH');
     const customerPhoneEnc = encrypt('+91 98765 01234');
     const customerAddressEnc = encrypt('456 Marine Drive, Mumbai, MH 400020');
 
-    const userInsertQuery = `
-      INSERT INTO users (email, password_hash, role, encrypted_phone, encrypted_address)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (email) DO UPDATE SET
-        password_hash = EXCLUDED.password_hash,
-        role = EXCLUDED.role,
-        encrypted_phone = EXCLUDED.encrypted_phone,
-        encrypted_address = EXCLUDED.encrypted_address;
-    `;
+    const adminId = 'admin_seed_001';
+    const customerId = 'customer_seed_002';
 
-    await pool.query(userInsertQuery, [
-      'admin@amorecosmetics.in',
-      adminPasswordHash,
-      'admin',
-      adminPhoneEnc,
-      adminAddressEnc,
-    ]);
+    // 1. Insert Admin user & account
+    await pool.query(
+      `INSERT INTO "user" ("id", "name", "email", "emailVerified", "role", "encrypted_phone", "encrypted_address", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+       ON CONFLICT ("email") DO UPDATE SET
+         "name" = EXCLUDED."name",
+         "role" = EXCLUDED."role",
+         "encrypted_phone" = EXCLUDED."encrypted_phone",
+         "encrypted_address" = EXCLUDED."encrypted_address",
+         "updatedAt" = NOW();`,
+      [adminId, 'Amore Admin', 'admin@amorecosmetics.in', true, 'admin', adminPhoneEnc, adminAddressEnc]
+    );
 
-    await pool.query(userInsertQuery, [
-      'client@amorecosmetics.in',
-      userPasswordHash,
-      'customer',
-      customerPhoneEnc,
-      customerAddressEnc,
-    ]);
+    await pool.query(
+      `INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+       VALUES ($1, $2, 'credential', $3, $4, NOW(), NOW())
+       ON CONFLICT ("id") DO UPDATE SET
+         "password" = EXCLUDED."password",
+         "updatedAt" = NOW();`,
+      ['admin_account_001', adminId, adminId, adminPasswordHash]
+    );
 
-    console.log('Inserted default users (1 admin, 1 customer with encrypted phone/address).');
+    // 2. Insert Customer user & account
+    await pool.query(
+      `INSERT INTO "user" ("id", "name", "email", "emailVerified", "role", "encrypted_phone", "encrypted_address", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+       ON CONFLICT ("email") DO UPDATE SET
+         "name" = EXCLUDED."name",
+         "role" = EXCLUDED."role",
+         "encrypted_phone" = EXCLUDED."encrypted_phone",
+         "encrypted_address" = EXCLUDED."encrypted_address",
+         "updatedAt" = NOW();`,
+      [customerId, 'Client User', 'client@amorecosmetics.in', true, 'customer', customerPhoneEnc, customerAddressEnc]
+    );
+
+    await pool.query(
+      `INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+       VALUES ($1, $2, 'credential', $3, $4, NOW(), NOW())
+       ON CONFLICT ("id") DO UPDATE SET
+         "password" = EXCLUDED."password",
+         "updatedAt" = NOW();`,
+      ['customer_account_002', customerId, customerId, userPasswordHash]
+    );
+
+    console.log('Inserted default Better Auth users (1 admin, 1 customer with credential accounts and encrypted phone/address).');
   }
 
   // Ensure products exist
@@ -251,7 +294,7 @@ export async function seedDatabase({ force = true } = {}) {
     console.log(`Inserted ${lipsticks.length} HydraVelvet products.`);
   }
 
-  console.log('PostgreSQL database seeded successfully.');
+  console.log('PostgreSQL database seeded successfully with Better Auth schema.');
 }
 
 export async function ensureSeeded() {

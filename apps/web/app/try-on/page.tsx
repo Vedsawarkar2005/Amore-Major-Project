@@ -17,6 +17,7 @@ import {
 import {
   getFaceLandmarkerForImage,
   getFaceLandmarkerForVideo,
+  patchTFLiteConsole,
 } from "@/lib/tryon/face/faceLandmarker";
 import {
   createLipMask,
@@ -48,6 +49,11 @@ import {
 
 export default function TryOnStudioPage() {
   const { shades } = useShades();
+
+  // Silence benign TFLite XNNPACK logs from triggering Next.js dev error overlays
+  useEffect(() => {
+    patchTFLiteConsole();
+  }, []);
 
   // Selected Shade & Finish state
   const [selectedShadeId, setSelectedShadeId] = useState<string>("");

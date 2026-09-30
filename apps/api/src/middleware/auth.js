@@ -1,25 +1,33 @@
-import jwt from 'jsonwebtoken';
+import { auth as betterAuth } from '../auth.js';
+import { fromNodeHeaders } from 'better-auth/node';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'amore-secret-key-2026';
-
-export const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
-  }
-
-  const token = authHeader.split(' ')[1];
+/**
+ * Middleware to validate session using Better Auth
+ */
+export const authMiddleware = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const session = await betterAuth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+
+    if (!session || !session.user) {
+      return res.status(401).json({ error: 'Access denied. Invalid or expired session.' });
+    }
+
+    req.user = session.user;
+    req.session = session.session;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token.' });
+    console.error('Session verification error:', err);
+    return res.status(401).json({ error: 'Invalid or expired session.' });
   }
 };
 
 export const verifyToken = authMiddleware;
 
+/**
+ * Middleware to ensure authenticated user has admin role
+ */
 export const requireAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied: Admin privileges required.' });

@@ -18,11 +18,13 @@ const TOKEN_KEY = 'amore_auth_token';
 const USER_KEY = 'amore_auth_user';
 
 export interface User {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   role: string;
   created_at?: string;
+  encrypted_phone?: string | null;
+  encrypted_address?: string | null;
 }
 
 export interface ApiProduct {
@@ -61,7 +63,7 @@ export function mapApiToProduct(p: ApiProduct): Product {
 }
 
 export interface CreateOrderPayload {
-  userId: number;
+  userId: string | number;
   totalAmount: number;
   shippingAddress: string;
   items: Array<{
@@ -86,7 +88,7 @@ export interface OrderItem {
 export interface Order {
   id: number;
   order_number: string;
-  user_id: number;
+  user_id: string | number;
   total_amount: number;
   status: string;
   shipping_address: string;
@@ -320,7 +322,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
 }
 
 // 7. Get User Orders
-export async function getUserOrders(userId: number): Promise<Order[]> {
+export async function getUserOrders(userId: string | number): Promise<Order[]> {
   const res = await fetch(`${API_BASE_URL}/orders/user/${userId}`, {
     method: 'GET',
     headers: getHeaders(true),

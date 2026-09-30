@@ -1,16 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import {
-  User,
-  getToken,
-  getStoredUser,
-  login as apiLogin,
-  register as apiRegister,
-  logout as apiLogout,
-  getCurrentUser,
-} from "@/lib/api";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { User, setToken, removeToken, setStoredUser, removeStoredUser } from "@/lib/api";
 import { toast } from "@/components/ui/sonner";
+import { useSession, signIn, signUp, signOut } from "@/lib/auth-client";
 
 interface AuthContextType {
   user: User | null;
@@ -24,54 +17,72 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  signIn: typeof signIn;
+  signUp: typeof signUp;
+  useSession: typeof useSession;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { data: session, isPending: sessionLoading, error: sessionError, refetch } = useSession();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-
-  // Load stored auth on mount
-  useEffect(() => {
-    const savedToken = getToken();
-    const savedUser = getStoredUser();
-
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(savedUser);
-      // Verify token in background with backend
-      getCurrentUser()
-        .then((latestUser) => {
-          if (latestUser) {
-            setUser(latestUser);
-          }
-        })
-        .catch(() => {
-          // If token verification fails, keep stored or clear
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
+  const [authActionLoading, setAuthActionLoading] = useState<boolean>(false);
 
   const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);
   const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
+  const rawUser = session?.user;
+  const rawSession = session?.session;
+
+  const user: User | null = useMemo(() => {
+    if (!rawUser) return null;
+    return {
+      id: rawUser.id,
+      name: rawUser.name || rawUser.email.split('@')[0],
+      email: rawUser.email,
+      role: (rawUser as any).role || 'customer',
+      created_at: rawUser.createdAt ? new Date(rawUser.createdAt).toISOString() : undefined,
+      encrypted_phone: (rawUser as any).encrypted_phone || null,
+      encrypted_address: (rawUser as any).encrypted_address || null,
+    };
+  }, [rawUser]);
+
+  const token: string | null = rawSession?.token || null;
+  const isLoading = sessionLoading || authActionLoading;
+  const isAuthenticated = !!user;
+
+  // Synchronize Better Auth session with LocalStorage for backward compatibility
+  useEffect(() => {
+    if (token) {
+      setToken(token);
+    } else if (!sessionLoading && !session) {
+      removeToken();
+    }
+
+    if (user) {
+      setStoredUser(user);
+    } else if (!sessionLoading && !session) {
+      removeStoredUser();
+    }
+  }, [token, user, sessionLoading, session]);
+
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
+    setAuthActionLoading(true);
     try {
-      const res = await apiLogin(email, password);
-      setToken(res.token);
-      setUser(res.user);
+      const res = await signIn.email({
+        email,
+        password,
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message || "Invalid credentials. Please try again.");
+      }
+
+      await refetch();
       setIsAuthModalOpen(false);
       toast.success("Welcome Back", {
-        description: `Signed in as ${res.user.name} (${res.user.role})`,
+        description: `Signed in as ${res.data?.user?.name || email}`,
       });
     } catch (err: any) {
       toast.error("Sign In Failed", {
@@ -79,19 +90,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       throw err;
     } finally {
-      setIsLoading(false);
+      setAuthActionLoading(false);
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
-    setIsLoading(true);
+    setAuthActionLoading(true);
     try {
-      const res = await apiRegister(name, email, password);
-      setToken(res.token);
-      setUser(res.user);
+      const res = await signUp.email({
+        name,
+        email,
+        password,
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message || "Registration failed");
+      }
+
+      await refetch();
       setIsAuthModalOpen(false);
       toast.success("Account Created", {
-        description: `Welcome to Amore, ${res.user.name}!`,
+        description: `Welcome to Amore, ${name}!`,
       });
     } catch (err: any) {
       toast.error("Registration Failed", {
@@ -99,22 +118,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       throw err;
     } finally {
-      setIsLoading(false);
+      setAuthActionLoading(false);
     }
   };
 
-  const logout = () => {
-    apiLogout();
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn("Sign out error:", err);
+    }
+    removeToken();
+    removeStoredUser();
+    await refetch();
     toast.info("Logged Out", {
       description: "You have been signed out of your account.",
     });
   };
 
   const refreshUser = async () => {
-    const latestUser = await getCurrentUser();
-    setUser(latestUser);
+    await refetch();
   };
 
   return (
@@ -123,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         token,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated,
         isAuthModalOpen,
         openAuthModal,
         closeAuthModal,
@@ -131,6 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         refreshUser,
+        signIn,
+        signUp,
+        useSession,
       }}
     >
       {children}
