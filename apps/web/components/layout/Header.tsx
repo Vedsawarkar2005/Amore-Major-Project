@@ -219,6 +219,19 @@ export const Header: React.FC = () => {
               CONTACT
             </Link>
 
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className={`text-xs uppercase tracking-widest font-semibold transition-opacity px-2 py-0.5 border border-black/20 ${
+                  pathname.startsWith("/admin")
+                    ? "bg-black text-white"
+                    : "text-black hover:bg-black hover:text-white"
+                }`}
+              >
+                ADMIN
+              </Link>
+            )}
+
             <div className="h-4 w-px bg-black/10 mx-1 hidden sm:block" />
 
             {/* Action icons: Search, Virtual Try-On, Wishlist, Cart, User Auth */}

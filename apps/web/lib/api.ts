@@ -431,3 +431,157 @@ export async function fetchRecommendations(
   return data;
 }
 
+// 10. Admin Endpoints
+export interface AdminUser {
+  id: number;
+  email: string;
+  role: string;
+  encrypted_phone: string | null;
+  encrypted_address: string | null;
+  decrypted_phone?: string | null;
+  decrypted_address?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  created_at: string;
+}
+
+export interface AdminOrderItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  price_at_purchase: number;
+  product_name?: string;
+  product_sku?: string;
+  hex_code?: string;
+}
+
+export interface AdminRecentOrder {
+  id: number;
+  user_id: number;
+  user_email?: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  items?: AdminOrderItem[];
+}
+
+export interface AdminInventoryProduct {
+  id: number;
+  sku: string;
+  name: string;
+  shade_name: string;
+  hex_code: string;
+  price: number;
+  stock_quantity: number;
+  finish?: string;
+  image_url?: string;
+}
+
+export interface AdminMetrics {
+  total_users: number;
+  total_orders: number;
+  total_revenue: number;
+  low_stock_products: number;
+  low_stock_threshold?: number;
+  low_stock_list?: AdminInventoryProduct[];
+  totalUsers?: number;
+  totalOrders?: number;
+  totalRevenue?: number;
+  lowStockProducts?: number;
+  recent_orders?: AdminRecentOrder[];
+  recentOrders?: AdminRecentOrder[];
+  inventory?: AdminInventoryProduct[];
+}
+
+/**
+ * Fetch all registered users with raw encrypted values and decrypted plaintext.
+ * Protected by admin JWT token verification.
+ */
+export async function fetchAdminUsers(token?: string): Promise<AdminUser[]> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/users`, {
+    method: 'GET',
+    headers,
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    // Try alternate base if needed
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/users`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Access denied or failed to fetch users`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+
+  const data = await res.json();
+  return data.users || [];
+}
+
+/**
+ * Fetch admin store metrics (users, orders, revenue, inventory stock).
+ * Protected by admin JWT token verification.
+ */
+export async function fetchAdminMetrics(token?: string): Promise<AdminMetrics> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/metrics`, {
+    method: 'GET',
+    headers,
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/metrics`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Access denied or failed to fetch metrics`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+
+  const data = await res.json();
+  return data;
+}

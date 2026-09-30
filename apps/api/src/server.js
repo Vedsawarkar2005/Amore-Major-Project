@@ -9,6 +9,7 @@ import authRouter from './routes/auth.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import tryonRouter from './routes/tryon.js';
+import adminRouter from './routes/admin.js';
 
 // Auto-seed database if empty (e.g. fresh container or restart)
 ensureSeeded();
@@ -43,6 +44,7 @@ app.use(['/api/auth', '/auth'], authRouter);
 app.use(['/api/products', '/products'], productsRouter);
 app.use(['/api/orders', '/orders'], ordersRouter);
 app.use(['/api/tryon', '/tryon'], tryonRouter);
+app.use(['/api/admin', '/admin'], adminRouter);
 
 // Health-check endpoint
 app.get(['/api/health', '/health', '/'], (req, res) => {

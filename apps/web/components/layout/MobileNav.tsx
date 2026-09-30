@@ -271,6 +271,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
                     <LogOut className="w-3 h-3" />
                   </button>
                 </div>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    onClick={onClose}
+                    className="block w-full py-1.5 bg-neutral-900 text-white text-[10px] uppercase tracking-wider font-medium text-center hover:bg-black transition-colors"
+                  >
+                    Admin Console
+                  </Link>
+                )}
               </div>
             ) : (
               <button

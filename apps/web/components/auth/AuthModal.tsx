@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { X, User as UserIcon, Lock, Mail, Package, LogOut, CheckCircle2, Shield } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getUserOrders, Order } from "@/lib/api";
@@ -152,8 +153,20 @@ export const AuthModal: React.FC = () => {
                 <p className="text-xs text-neutral-600 font-mono tracking-wide">{user.email}</p>
                 <div className="pt-2 flex items-center space-x-1.5 text-[11px] text-neutral-500">
                   <Shield className="w-3.5 h-3.5 text-black shrink-0" />
-                  <span>Verified SQLite Authentication Active</span>
+                  <span>Neon PostgreSQL AES-256 Authentication</span>
                 </div>
+                {user.role === 'admin' && (
+                  <div className="pt-3 border-t border-neutral-200">
+                    <Link
+                      href="/admin"
+                      onClick={closeAuthModal}
+                      className="w-full py-2 bg-neutral-900 text-white hover:bg-black text-[11px] font-semibold uppercase tracking-widest flex items-center justify-center gap-2 transition"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Open Admin Console</span>
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Order History */}
