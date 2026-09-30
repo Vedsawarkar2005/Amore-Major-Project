@@ -21,15 +21,23 @@ ensureSeeded();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Configure CORS middleware
-app.use(cors({
+// Configure CORS middleware — must be the very first middleware so that
+// CORS headers are set before Better Auth or any route handler runs.
+const corsOptions = {
   origin: [
     'https://amore-major-project.vercel.app',
     'http://localhost:3000',
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Respond to every OPTIONS preflight immediately with the CORS headers.
+// This MUST sit before Better Auth so it never sees preflight requests.
+app.options('*', cors(corsOptions));
 
 // Forward Better Auth endpoints if called without /auth prefix (e.g. when baseURL is configured with /api)
 app.use((req, res, next) => {
