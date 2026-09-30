@@ -30,7 +30,9 @@ export const auth = betterAuth({
   plugins: [
     bearer(),
   ],
-  baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 8000}`,
+  baseURL: process.env.NODE_ENV === 'production'
+    ? 'https://amore-api.onrender.com/api/auth'
+    : 'http://localhost:8000/api/auth',
   trustedOrigins: [
     'https://amore-major-project.vercel.app',
     'http://localhost:3000',
