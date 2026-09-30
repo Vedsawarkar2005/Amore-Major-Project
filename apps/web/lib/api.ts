@@ -167,7 +167,7 @@ export async function fetchProducts(): Promise<ApiProduct[]> {
     const res = await fetch(`${API_BASE_URL}/products`, {
       method: 'GET',
       headers: getHeaders(false),
-      cache: 'no-store',
+      next: { revalidate: 3600 },
     });
 
     if (res.ok) {
@@ -185,7 +185,7 @@ export async function fetchProducts(): Promise<ApiProduct[]> {
     const altRes = await fetch(`${altBase}/products`, {
       method: 'GET',
       headers: getHeaders(false),
-      cache: 'no-store',
+      next: { revalidate: 3600 },
     });
 
     if (altRes.ok) {

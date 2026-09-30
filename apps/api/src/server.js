@@ -21,21 +21,13 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Configure CORS middleware
-const allowedOrigins = [
-  'http://localhost:3000',
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, true); // fallback allow or restrict if desired
-    }
-  },
+  origin: [
+    'https://amore-major-project.vercel.app',
+    'http://localhost:3000',
+  ],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
 // Forward Better Auth endpoints if called without /auth prefix (e.g. when baseURL is configured with /api)
