@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FinishType } from "../tryon/lips/lipstickRenderer";
+import { FinishType } from "../tryon/lips/realistic-lipstickRenderer";
 
 export type Shade = {
     id: string;

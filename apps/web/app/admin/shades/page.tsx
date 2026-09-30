@@ -27,7 +27,7 @@ import {
   deleteShade,
   resetShadesToDefault,
 } from "@/lib/shades/shadesStore";
-import { FinishType } from "@/lib/tryon/lips/lipstickRenderer";
+import { FinishType } from "@/lib/tryon/lips/realistic-lipstickRenderer";
 
 // Zod validation schema as per requirements
 const shadeSchema = z.object({

@@ -1,0 +1,14 @@
+[
+  { "id": "1938", "name": "Brick Brown", "hex": "#8C3725", "finish": "Velvet Matte", "sku": "HVL001" },
+  { "id": "1993", "name": "Dusty Truffle", "hex": "#5A2322", "finish": "Velvet Matte", "sku": "HVL002" },
+  { "id": "1999", "name": "Red Ember", "hex": "#8E2C2C", "finish": "Velvet Matte", "sku": "HVL003" },
+  { "id": "2005", "name": "Pink Berry", "hex": "#8C1D40", "finish": "Velvet Matte", "sku": "HVL004" },
+  { "id": "2011", "name": "Soft Peach", "hex": "#AA584E", "finish": "Velvet Matte", "sku": "HVL005" },
+  { "id": "2017", "name": "Misty Rose", "hex": "#A15B5C", "finish": "Velvet Matte", "sku": "HVL006" },
+  { "id": "2018", "name": "Caramel Mocha", "hex": "#8C3C2A", "finish": "Velvet Matte", "sku": "HVL007" },
+  { "id": "2030", "name": "Barely Chestnut", "hex": "#A65B54", "finish": "Velvet Matte", "sku": "HVL008" },
+  { "id": "2036", "name": "Mulberry Wine", "hex": "#8E4A52", "finish": "Velvet Matte", "sku": "HVL009" },
+  { "id": "2042", "name": "Crimson Charm", "hex": "#B81D24", "finish": "Velvet Matte", "sku": "HVL010" },
+  { "id": "2048", "name": "Wine Stain", "hex": "#6E0D13", "finish": "Velvet Matte", "sku": "HVL011" },
+  { "id": "2054", "name": "Cinnamon Mauve", "hex": "#8E2F2E", "finish": "Velvet Matte", "sku": "HVL012" }
+]

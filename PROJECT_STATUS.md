@@ -92,6 +92,10 @@ Amore Full Web/                   ← Repo Root
   - `components/layout/Header.tsx` — search fetches from API on first open.
   - All contexts and components use `Product` from `lib/types`.
 - [x] **Dead Code Removal**: Deleted `apps/web/data/products.ts` (static data) and 5 default Next.js boilerplate SVGs (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`).
+- [x] **Realistic Lip Renderer & AI Recommendation Integration**:
+  - Integrated CIE LAB color science, edge feathering, and multi-finish simulation (`Velvet Matte`, `Matte`, `Satin`, `Glossy`) into `apps/web/lib/tryon/lips/realistic-lipstickRenderer.ts`.
+  - Added AI skin tone analyzer & shade recommendation microservice under `apps/shade-recom` with `data/shade_catalogue.json` covering all 12 Amore HydraVelvet shades.
+  - Upgraded Virtual Try-On Studio (`apps/web/app/try-on/page.tsx`) with AI Stylist match scores, dual video/photo mode, and direct store checkout integration.
 
 ---
 
@@ -102,11 +106,13 @@ Amore Full Web/                   ← Repo Root
 # Run both Backend API (port 8000) and Next.js Frontend (port 3000)
 npm run dev
 
-# Run only Web frontend
-npm run dev:web
+# Run all 3 services concurrently (Express API + Next.js Web + AI Recommendation)
+npm run dev:all
 
-# Run only Backend API
+# Run individual services
+npm run dev:web
 npm run dev:api
+npm run dev:ai
 
 # Install all workspace dependencies
 npm install
@@ -123,7 +129,7 @@ npm --prefix apps/api run seed
 
 ## 4. Outstanding Tasks
 
-- [ ] **Production Try-On Engine**: Connect `POST /api/tryon` to actual virtual try-on inference service/model.
+- [x] **Production Try-On Engine**: Integrated realistic lip rendering engine and AI shade recommendation microservice.
 - [ ] **Automated Testing**: Add end-to-end tests for product queries, order creation transactions, and auth flows.
 - [ ] **`data/` folder cleanup**: Remove empty `apps/web/data/` directory (empty after products.ts deletion).
 - [x] **Slug derivation hardening**: Move slug generation (`hydravelvet-lipstick-${sku.toLowerCase()}`) into a shared utility to avoid drift across `app/shop/[slug]/page.tsx`, `Header.tsx`, `app/shop/page.tsx`, and `app/page.tsx`.

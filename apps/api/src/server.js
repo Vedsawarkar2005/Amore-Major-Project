@@ -1,13 +1,16 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import { db } from './db.js';
+import { pool, query, db } from './db.js';
 import { ensureSeeded } from './seed.js';
 import authRouter from './routes/auth.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import tryonRouter from './routes/tryon.js';
 
-// Auto-seed database if empty (e.g. fresh Render container or restart)
+// Auto-seed database if empty (e.g. fresh container or restart)
 ensureSeeded();
 
 // Initialize Express server
@@ -17,7 +20,7 @@ const PORT = process.env.PORT || 8000;
 // Configure CORS and JSON parsing middleware
 const allowedOrigins = [
   'http://localhost:3000',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(cors({
@@ -29,7 +32,7 @@ app.use(cors({
       callback(null, true); // fallback allow or restrict if desired
     }
   },
-  credentials: true
+  credentials: true,
 }));
 
 app.use(express.json({ limit: '25mb' }));
@@ -45,7 +48,7 @@ app.use(['/api/tryon', '/tryon'], tryonRouter);
 app.get(['/api/health', '/health', '/'], (req, res) => {
   res.json({
     status: 'ok',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -54,4 +57,4 @@ app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-export { app, db };
+export { app, pool, query, db };

@@ -4,7 +4,7 @@ import React from "react";
 import { Check, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { Shade } from "@/lib/shades/shadesStore";
-import { FinishType } from "@/lib/tryon/lips/lipstickRenderer";
+import { FinishType } from "@/lib/tryon/lips/realistic-lipstickRenderer";
 
 interface ShadeDockProps {
   shades: Shade[];

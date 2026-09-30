@@ -360,3 +360,74 @@ export async function processTryOn(
   return data;
 }
 
+// 9. AI Shade Recommendation via Express Backend Gateway (/api/tryon/recommend)
+export interface RecommendedShade {
+  id: string;
+  name: string;
+  hex: string;
+  finish?: string;
+  compatibility: number;
+  lab?: {
+    L: number;
+    a: number;
+    b: number;
+  };
+}
+
+export interface RecommendationResponse {
+  success: boolean;
+  skin_tone: string;
+  skin_tone_probabilities: Record<string, number>;
+  skin_lab: {
+    L: number;
+    a: number;
+    b: number;
+  };
+  recommendations: RecommendedShade[];
+  error?: string;
+  error_type?: string;
+}
+
+export interface RecommendationPayload {
+  imageBase64?: string;
+  image?: string;
+  skinTone?: string;
+  skin_tone?: string;
+  skinLab?: {
+    L: number;
+    a: number;
+    b: number;
+  };
+  skin_lab?: {
+    L: number;
+    a: number;
+    b: number;
+  };
+}
+
+export async function fetchRecommendations(
+  payload: RecommendationPayload | string
+): Promise<RecommendationResponse> {
+  const body =
+    typeof payload === 'string'
+      ? { imageBase64: payload }
+      : {
+          imageBase64: payload.imageBase64 || payload.image,
+          skinTone: payload.skinTone || payload.skin_tone,
+          skinLab: payload.skinLab || payload.skin_lab,
+        };
+
+  const res = await fetch(`${API_BASE_URL}/tryon/recommend`, {
+    method: 'POST',
+    headers: getHeaders(false),
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to fetch AI shade recommendations');
+  }
+
+  return data;
+}
+

@@ -8,8 +8,10 @@
   ],
   "scripts": {
     "dev": "concurrently -n \"API,WEB\" -c \"magenta,cyan\" \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
+    "dev:all": "concurrently -n \"API,WEB,AI\" -c \"magenta,cyan,yellow\" \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\" \"python apps/shade-recom/main.py\"",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
+    "dev:ai": "python apps/shade-recom/main.py",
     "install:all": "npm install"
   },
   "allowScripts": {
@@ -17,5 +19,9 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
+  },
+  "dependencies": {
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.4.8"
   }
 }

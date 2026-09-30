@@ -1,75 +1,24 @@
-import { DatabaseSync } from 'node:sqlite';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import pg from 'pg';
+import dotenv from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-// Ensure data directory exists
-const dataDir = path.resolve(__dirname, '../data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+const { Pool } = pg;
 
-// Set up SQLite connection
-const dbPath = path.join(dataDir, 'amore.db');
-export const db = new DatabaseSync(dbPath);
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
-// Transaction helper for compatibility
-db.transaction = (fn) => {
-  return (...args) => {
-    db.exec('BEGIN');
-    try {
-      const result = fn(...args);
-      db.exec('COMMIT');
-      return result;
-    } catch (err) {
-      db.exec('ROLLBACK');
-      throw err;
-    }
-  };
-};
+/**
+ * Async query helper for pg.Pool
+ * @param {string} text - SQL query text
+ * @param {Array} [params] - Query parameters
+ * @returns {Promise<pg.QueryResult>}
+ */
+export const query = (text, params) => pool.query(text, params);
 
-// Initialize database schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT UNIQUE,
-    password_hash TEXT,
-    role TEXT DEFAULT 'CUSTOMER',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sku TEXT UNIQUE,
-    name TEXT,
-    description TEXT,
-    price REAL,
-    shade_hex TEXT,
-    image_url TEXT,
-    stock INTEGER DEFAULT 50
-  );
-
-  CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_number TEXT UNIQUE,
-    user_id INTEGER,
-    total_amount REAL,
-    status TEXT DEFAULT 'PAID',
-    shipping_address TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS order_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER,
-    product_id INTEGER,
-    quantity INTEGER,
-    price REAL
-  );
-`);
-
-export default db;
+export const db = pool;
+export default pool;

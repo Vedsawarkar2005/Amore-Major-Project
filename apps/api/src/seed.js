@@ -1,163 +1,276 @@
-import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { db } from './db.js';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import { pool } from './db.js';
+import { encrypt } from './utils/crypto.js';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const lipsticks = [
   {
     sku: 'HVL001',
-    name: 'Velvet Ruby',
+    name: 'HydraVelvet Matte Lipstick - Velvet Ruby',
+    shade_name: 'Velvet Ruby',
+    hex_code: '#9B111E',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl001.jpg',
+    finish: 'Velvet Matte',
     description: 'Rich classic red with a luxurious velvety matte finish.',
-    shade_hex: '#9B111E',
-    image_url: '/images/products/hvl001.jpg'
   },
   {
     sku: 'HVL002',
-    name: 'Rose Petal',
+    name: 'HydraVelvet Matte Lipstick - Rose Petal',
+    shade_name: 'Rose Petal',
+    hex_code: '#C08081',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl002.jpg',
+    finish: 'Velvet Matte',
     description: 'Soft delicate rose nude designed for everyday elegance.',
-    shade_hex: '#C08081',
-    image_url: '/images/products/hvl002.jpg'
   },
   {
     sku: 'HVL003',
-    name: 'Crimson Luxe',
+    name: 'HydraVelvet Matte Lipstick - Crimson Luxe',
+    shade_name: 'Crimson Luxe',
+    hex_code: '#800020',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl003.jpg',
+    finish: 'Velvet Matte',
     description: 'Deep burgundy crimson for bold and sophisticated evening looks.',
-    shade_hex: '#800020',
-    image_url: '/images/products/hvl003.jpg'
   },
   {
     sku: 'HVL004',
-    name: 'Mauve Whisper',
+    name: 'HydraVelvet Matte Lipstick - Mauve Whisper',
+    shade_name: 'Mauve Whisper',
+    hex_code: '#9E5E6F',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl004.jpg',
+    finish: 'Hydrating Satin',
     description: 'Subtle dusty mauve shade with a hydrating satin texture.',
-    shade_hex: '#9E5E6F',
-    image_url: '/images/products/hvl004.jpg'
   },
   {
     sku: 'HVL005',
-    name: 'Coral Bloom',
+    name: 'HydraVelvet Matte Lipstick - Coral Bloom',
+    shade_name: 'Coral Bloom',
+    hex_code: '#E55B5B',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl005.jpg',
+    finish: 'Velvet Matte',
     description: 'Vibrant coral pink that instantly illuminates all skin tones.',
-    shade_hex: '#E55B5B',
-    image_url: '/images/products/hvl005.jpg'
   },
   {
     sku: 'HVL006',
-    name: 'Berry Crush',
+    name: 'HydraVelvet Matte Lipstick - Berry Crush',
+    shade_name: 'Berry Crush',
+    hex_code: '#6C244C',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl006.jpg',
+    finish: 'Velvet Matte',
     description: 'Juicy berry tone with ultra-pigmented full-coverage payoff.',
-    shade_hex: '#6C244C',
-    image_url: '/images/products/hvl006.jpg'
   },
   {
     sku: 'HVL007',
-    name: 'Nude Truffle',
+    name: 'HydraVelvet Matte Lipstick - Nude Truffle',
+    shade_name: 'Nude Truffle',
+    hex_code: '#B87B64',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl007.jpg',
+    finish: 'Velvet Matte',
     description: 'Warm terracotta nude for an effortless, chic modern aesthetic.',
-    shade_hex: '#B87B64',
-    image_url: '/images/products/hvl007.jpg'
   },
   {
     sku: 'HVL008',
-    name: 'Plum Royale',
+    name: 'HydraVelvet Matte Lipstick - Plum Royale',
+    shade_name: 'Plum Royale',
+    hex_code: '#4E1A3D',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl008.jpg',
+    finish: 'Velvet Matte',
     description: 'Regal deep plum delivering intense drama and long-lasting wear.',
-    shade_hex: '#4E1A3D',
-    image_url: '/images/products/hvl008.jpg'
   },
   {
     sku: 'HVL009',
-    name: 'Peachy Keen',
+    name: 'HydraVelvet Matte Lipstick - Peachy Keen',
+    shade_name: 'Peachy Keen',
+    hex_code: '#F69988',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl009.jpg',
+    finish: 'Silky Satin',
     description: 'Light sweet peach shade with a silky smooth satin formulation.',
-    shade_hex: '#F69988',
-    image_url: '/images/products/hvl009.jpg'
   },
   {
     sku: 'HVL010',
-    name: 'Scarlet Allure',
+    name: 'HydraVelvet Matte Lipstick - Scarlet Allure',
+    shade_name: 'Scarlet Allure',
+    hex_code: '#D32F2F',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl010.jpg',
+    finish: 'Velvet Matte',
     description: 'Intense fiery scarlet red making an unforgettable bold statement.',
-    shade_hex: '#D32F2F',
-    image_url: '/images/products/hvl010.jpg'
   },
   {
     sku: 'HVL011',
-    name: 'Spiced Mocha',
+    name: 'HydraVelvet Matte Lipstick - Spiced Mocha',
+    shade_name: 'Spiced Mocha',
+    hex_code: '#7A3E31',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl011.jpg',
+    finish: 'Velvet Matte',
     description: 'Cozy chocolate-cinnamon brown delivering warm nude richness.',
-    shade_hex: '#7A3E31',
-    image_url: '/images/products/hvl011.jpg'
   },
   {
     sku: 'HVL012',
-    name: 'Dusty Dahlia',
+    name: 'HydraVelvet Matte Lipstick - Dusty Dahlia',
+    shade_name: 'Dusty Dahlia',
+    hex_code: '#B25368',
+    price: 349.00,
+    stock_quantity: 50,
+    image_url: '/images/products/hvl012.jpg',
+    finish: 'Soft Matte',
     description: 'Muted flower-inspired pinkish rose shade for subtle, soft glam.',
-    shade_hex: '#B25368',
-    image_url: '/images/products/hvl012.jpg'
-  }
+  },
 ];
 
-export function seedDatabase({ force = true } = {}) {
-  console.log('Seeding database at apps/api/data/amore.db...');
+/**
+ * Initializes database tables using schema.sql
+ */
+export async function initSchema() {
+  const schemaPath = path.join(__dirname, 'schema.sql');
+  if (fs.existsSync(schemaPath)) {
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    await pool.query(schemaSql);
+  }
+}
+
+/**
+ * Seeds the PostgreSQL database with HydraVelvet products and initial users
+ */
+export async function seedDatabase({ force = true } = {}) {
+  console.log('Seeding PostgreSQL database...');
+  await initSchema();
 
   if (force) {
-    db.prepare('DELETE FROM users').run();
-    db.prepare('DELETE FROM products').run();
-    try {
-      db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users', 'products')").run();
-    } catch (e) {
-      // sqlite_sequence table may not exist yet
-    }
+    await pool.query('TRUNCATE TABLE order_items, orders, products, users RESTART IDENTITY CASCADE;');
   }
 
   // Ensure default users exist
-  const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get();
-  if (force || !existingUsers || existingUsers.count === 0) {
-    const adminPasswordHash = bcrypt.hashSync('admin123', 10);
-    const userPasswordHash = bcrypt.hashSync('user123', 10);
+  const existingUsersRes = await pool.query('SELECT COUNT(*) as count FROM users');
+  const userCount = parseInt(existingUsersRes.rows[0]?.count || '0', 10);
 
-    const insertUser = db.prepare(
-      'INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-    );
+  if (force || userCount === 0) {
+    const adminPasswordHash = await bcrypt.hash('admin123', 10);
+    const userPasswordHash = await bcrypt.hash('user123', 10);
 
-    insertUser.run('Admin User', 'admin@amorecosmetics.in', adminPasswordHash, 'ADMIN');
-    insertUser.run('Test User', 'client@amorecosmetics.in', userPasswordHash, 'CUSTOMER');
-    console.log('Inserted default users (Admin + Customer).');
+    const adminPhoneEnc = encrypt('+91 98765 43210');
+    const adminAddressEnc = encrypt('Amore HQ, 101 Fashion Blvd, Mumbai, MH');
+    const customerPhoneEnc = encrypt('+91 98765 01234');
+    const customerAddressEnc = encrypt('456 Marine Drive, Mumbai, MH 400020');
+
+    const userInsertQuery = `
+      INSERT INTO users (email, password_hash, role, encrypted_phone, encrypted_address)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (email) DO UPDATE SET
+        password_hash = EXCLUDED.password_hash,
+        role = EXCLUDED.role,
+        encrypted_phone = EXCLUDED.encrypted_phone,
+        encrypted_address = EXCLUDED.encrypted_address;
+    `;
+
+    await pool.query(userInsertQuery, [
+      'admin@amorecosmetics.in',
+      adminPasswordHash,
+      'admin',
+      adminPhoneEnc,
+      adminAddressEnc,
+    ]);
+
+    await pool.query(userInsertQuery, [
+      'client@amorecosmetics.in',
+      userPasswordHash,
+      'customer',
+      customerPhoneEnc,
+      customerAddressEnc,
+    ]);
+
+    console.log('Inserted default users (1 admin, 1 customer with encrypted phone/address).');
   }
 
   // Ensure products exist
-  const existingProducts = db.prepare('SELECT COUNT(*) as count FROM products').get();
-  if (force || !existingProducts || existingProducts.count === 0) {
-    const insertProduct = db.prepare(
-      'INSERT OR IGNORE INTO products (sku, name, description, price, shade_hex, image_url, stock) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    );
+  const existingProductsRes = await pool.query('SELECT COUNT(*) as count FROM products');
+  const productCount = parseInt(existingProductsRes.rows[0]?.count || '0', 10);
 
-    const seedLipsticks = db.transaction((items) => {
-      for (const item of items) {
-        insertProduct.run(
-          item.sku,
-          item.name,
-          item.description,
-          349.00,
-          item.shade_hex,
-          item.image_url,
-          50
-        );
-      }
-    });
+  if (force || productCount === 0) {
+    const productInsertQuery = `
+      INSERT INTO products (sku, name, shade_name, hex_code, price, stock_quantity, image_url, finish, description)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (sku) DO UPDATE SET
+        name = EXCLUDED.name,
+        shade_name = EXCLUDED.shade_name,
+        hex_code = EXCLUDED.hex_code,
+        price = EXCLUDED.price,
+        stock_quantity = EXCLUDED.stock_quantity,
+        image_url = EXCLUDED.image_url,
+        finish = EXCLUDED.finish,
+        description = EXCLUDED.description;
+    `;
 
-    seedLipsticks(lipsticks);
-    console.log(`Inserted ${lipsticks.length} mock lipstick products (HVL001 - HVL012).`);
+    for (const item of lipsticks) {
+      await pool.query(productInsertQuery, [
+        item.sku,
+        item.name,
+        item.shade_name,
+        item.hex_code,
+        item.price,
+        item.stock_quantity,
+        item.image_url,
+        item.finish,
+        item.description,
+      ]);
+    }
+
+    console.log(`Inserted ${lipsticks.length} HydraVelvet products.`);
   }
 
-  console.log('Database seeding verified successfully.');
+  console.log('PostgreSQL database seeded successfully.');
 }
 
-export function ensureSeeded() {
+export async function ensureSeeded() {
+  if (!process.env.DATABASE_URL) {
+    console.warn('DATABASE_URL not set, skipping automatic database seed.');
+    return;
+  }
   try {
-    const row = db.prepare('SELECT COUNT(*) as count FROM products').get();
-    if (!row || row.count === 0) {
-      console.log('Database is empty. Running automatic seed on startup...');
-      seedDatabase({ force: false });
+    const res = await pool.query('SELECT COUNT(*) as count FROM products');
+    if (!res.rows[0] || parseInt(res.rows[0].count, 10) === 0) {
+      console.log('Database empty. Running automatic seed on startup...');
+      await seedDatabase({ force: false });
     }
   } catch (err) {
-    console.warn('Could not verify database seed state:', err);
+    console.warn('Could not verify database seed state:', err.message);
   }
 }
 
 // Run directly if called as a script
 if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('src/seed.js')) {
-  seedDatabase({ force: true });
+  seedDatabase({ force: true })
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error('Seeding failed:', err);
+      process.exit(1);
+    });
 }
