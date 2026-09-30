@@ -954,7 +954,7 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs uppercase tracking-widest text-neutral-500">Filter:</span>
                 {(["all", "low", "in_stock"] as const).map((filter) => (
                   <button
@@ -969,6 +969,14 @@ export default function AdminDashboardPage() {
                     {filter === "all" ? "All (12)" : filter === "low" ? "Low Stock (≤20)" : "Healthy Stock"}
                   </button>
                 ))}
+
+                <Link
+                  href="/admin/shades"
+                  className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 text-white text-xs uppercase tracking-widest font-medium hover:bg-neutral-800 transition-colors"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Open Shade Atelier</span>
+                </Link>
               </div>
             </div>
 

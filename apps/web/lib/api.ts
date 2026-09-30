@@ -585,3 +585,217 @@ export async function fetchAdminMetrics(token?: string): Promise<AdminMetrics> {
   const data = await res.json();
   return data;
 }
+
+// 11. Admin Shade Management Endpoints
+export interface ShadeProduct {
+  id: number;
+  sku: string;
+  name: string;
+  shade_name: string;
+  hex_code: string;
+  price: number;
+  stock_quantity: number;
+  finish: string;
+  description?: string;
+  image_url?: string;
+}
+
+export interface CreateShadeInput {
+  sku: string;
+  name?: string;
+  shade_name: string;
+  hex_code: string;
+  price: number;
+  stock_quantity?: number;
+  finish?: string;
+  description?: string;
+  image_url?: string;
+}
+
+export interface UpdateShadeInput {
+  sku?: string;
+  name?: string;
+  shade_name?: string;
+  hex_code?: string;
+  price?: number;
+  stock_quantity?: number;
+  finish?: string;
+  description?: string;
+  image_url?: string;
+}
+
+/**
+ * Fetch full shade catalog for Shade Management dashboard
+ */
+export async function fetchAdminShades(token?: string): Promise<ShadeProduct[]> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/shades`, {
+    method: 'GET',
+    headers,
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/shades`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Failed to fetch shades`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+
+  const data = await res.json();
+  return data.shades || [];
+}
+
+/**
+ * Create a new lipstick shade in the catalog
+ */
+export async function createAdminShade(input: CreateShadeInput, token?: string): Promise<ShadeProduct> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/shades`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/shades`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(input),
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Failed to create shade`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+
+  const data = await res.json();
+  return data.shade;
+}
+
+/**
+ * Update an existing lipstick shade
+ */
+export async function updateAdminShade(id: number, input: UpdateShadeInput, token?: string): Promise<ShadeProduct> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/shades/${id}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/shades/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(input),
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Failed to update shade`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+
+  const data = await res.json();
+  return data.shade;
+}
+
+/**
+ * Delete a lipstick shade from the catalog
+ */
+export async function deleteAdminShade(id: number, token?: string): Promise<void> {
+  const authToken = token || getToken();
+  if (!authToken) {
+    throw new Error('No authentication token provided');
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  let res = await fetch(`${API_BASE_URL}/admin/shades/${id}`, {
+    method: 'DELETE',
+    headers,
+  });
+
+  if (!res.ok) {
+    const altBase = API_BASE_URL.endsWith('/api')
+      ? API_BASE_URL.slice(0, -4)
+      : `${API_BASE_URL}/api`;
+
+    const altRes = await fetch(`${altBase}/admin/shades/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (altRes.ok) {
+      res = altRes;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      const error = new Error(errorData.error || `HTTP ${res.status}: Failed to delete shade`);
+      (error as any).status = res.status;
+      throw error;
+    }
+  }
+}
+

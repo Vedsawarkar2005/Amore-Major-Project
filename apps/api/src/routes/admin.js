@@ -164,4 +164,169 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/admin/shades
+ * Retrieve full catalog of lipstick shades for shade management dashboard
+ */
+router.get('/shades', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, sku, name, shade_name, hex_code, price, stock_quantity, finish, description, image_url
+       FROM products
+       ORDER BY id ASC`
+    );
+    return res.json({ shades: result.rows });
+  } catch (err) {
+    console.error('Admin fetch shades error:', err);
+    return res.status(500).json({ error: 'Failed to retrieve shades.' });
+  }
+});
+
+/**
+ * POST /api/admin/shades
+ * Add a new shade to catalog
+ */
+router.post('/shades', async (req, res) => {
+  try {
+    const {
+      sku,
+      name,
+      shade_name,
+      hex_code,
+      price,
+      stock_quantity = 50,
+      finish = 'Velvet Matte',
+      description = '',
+      image_url = '/images/products/hvl001.jpg',
+    } = req.body;
+
+    if (!sku || !shade_name || !hex_code || price === undefined) {
+      return res.status(400).json({
+        error: 'Missing required shade fields: sku, shade_name, hex_code, and price are required.',
+      });
+    }
+
+    const productName = name || `HydraVelvet Matte Lipstick - ${shade_name}`;
+
+    const insertRes = await pool.query(
+      `INSERT INTO products (sku, name, shade_name, hex_code, price, stock_quantity, finish, description, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id, sku, name, shade_name, hex_code, price, stock_quantity, finish, description, image_url`,
+      [
+        sku.toUpperCase().trim(),
+        productName.trim(),
+        shade_name.trim(),
+        hex_code.trim(),
+        parseFloat(price),
+        parseInt(stock_quantity, 10) || 0,
+        finish.trim(),
+        description.trim(),
+        image_url.trim(),
+      ]
+    );
+
+    return res.status(201).json({ shade: insertRes.rows[0], message: 'Shade created successfully.' });
+  } catch (err) {
+    console.error('Admin create shade error:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'A shade with this SKU already exists.' });
+    }
+    return res.status(500).json({ error: 'Failed to create shade.' });
+  }
+});
+
+/**
+ * PUT /api/admin/shades/:id
+ * Update an existing shade
+ */
+router.put('/shades/:id', async (req, res) => {
+  try {
+    const shadeId = parseInt(req.params.id, 10);
+    if (isNaN(shadeId)) {
+      return res.status(400).json({ error: 'Invalid shade ID.' });
+    }
+
+    const {
+      sku,
+      name,
+      shade_name,
+      hex_code,
+      price,
+      stock_quantity,
+      finish,
+      description,
+      image_url,
+    } = req.body;
+
+    // Check if shade exists
+    const existing = await pool.query('SELECT * FROM products WHERE id = $1', [shadeId]);
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Shade not found.' });
+    }
+
+    const current = existing.rows[0];
+    const updatedSku = sku ? sku.toUpperCase().trim() : current.sku;
+    const updatedShadeName = shade_name !== undefined ? shade_name.trim() : current.shade_name;
+    const updatedName = name !== undefined ? name.trim() : (shade_name ? `HydraVelvet Matte Lipstick - ${updatedShadeName}` : current.name);
+    const updatedHex = hex_code !== undefined ? hex_code.trim() : current.hex_code;
+    const updatedPrice = price !== undefined ? parseFloat(price) : current.price;
+    const updatedStock = stock_quantity !== undefined ? parseInt(stock_quantity, 10) : current.stock_quantity;
+    const updatedFinish = finish !== undefined ? finish.trim() : current.finish;
+    const updatedDesc = description !== undefined ? description.trim() : current.description;
+    const updatedImg = image_url !== undefined ? image_url.trim() : current.image_url;
+
+    const updateRes = await pool.query(
+      `UPDATE products
+       SET sku = $1, name = $2, shade_name = $3, hex_code = $4, price = $5,
+           stock_quantity = $6, finish = $7, description = $8, image_url = $9
+       WHERE id = $10
+       RETURNING id, sku, name, shade_name, hex_code, price, stock_quantity, finish, description, image_url`,
+      [
+        updatedSku,
+        updatedName,
+        updatedShadeName,
+        updatedHex,
+        updatedPrice,
+        updatedStock,
+        updatedFinish,
+        updatedDesc,
+        updatedImg,
+        shadeId,
+      ]
+    );
+
+    return res.json({ shade: updateRes.rows[0], message: 'Shade updated successfully.' });
+  } catch (err) {
+    console.error('Admin update shade error:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'A shade with this SKU already exists.' });
+    }
+    return res.status(500).json({ error: 'Failed to update shade.' });
+  }
+});
+
+/**
+ * DELETE /api/admin/shades/:id
+ * Delete a shade from catalog
+ */
+router.delete('/shades/:id', async (req, res) => {
+  try {
+    const shadeId = parseInt(req.params.id, 10);
+    if (isNaN(shadeId)) {
+      return res.status(400).json({ error: 'Invalid shade ID.' });
+    }
+
+    const deleteRes = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id, sku, shade_name', [shadeId]);
+    if (deleteRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Shade not found.' });
+    }
+
+    return res.json({ message: 'Shade deleted successfully.', deleted: deleteRes.rows[0] });
+  } catch (err) {
+    console.error('Admin delete shade error:', err);
+    return res.status(500).json({ error: 'Failed to delete shade.' });
+  }
+});
+
 export default router;
+
