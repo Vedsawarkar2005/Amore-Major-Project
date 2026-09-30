@@ -114,6 +114,8 @@ export const CartDrawer: React.FC = () => {
           userId: user?.id || 2, // fallback to demo customer id 2
           totalAmount: subtotal,
           shippingAddress,
+          customerName: value.fullName,
+          customerEmail: user?.email || "customer@amorecosmetics.com",
           items: orderItemsPayload,
         });
         if (createdOrder && createdOrder.order_number) {

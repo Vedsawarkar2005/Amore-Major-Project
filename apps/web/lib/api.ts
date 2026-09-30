@@ -66,10 +66,14 @@ export interface CreateOrderPayload {
   userId: string | number;
   totalAmount: number;
   shippingAddress: string;
+  customerName?: string;
+  customerEmail?: string;
   items: Array<{
     product_id: number;
     quantity: number;
     price: number;
+    name?: string;
+    shade_name?: string;
   }>;
 }
 
@@ -309,6 +313,8 @@ export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
       user_id: payload.userId,
       total_amount: payload.totalAmount,
       shipping_address: payload.shippingAddress,
+      customer_name: payload.customerName,
+      customer_email: payload.customerEmail,
       items: payload.items,
     }),
   });
