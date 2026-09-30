@@ -10,7 +10,7 @@ import { Newsletter } from "@/features/landing/sections/newsletter";
 import { Ritual } from "@/features/landing/sections/ritual";
 import { ShadeFamilies } from "@/features/landing/sections/shade-families";
 import { ShadeGallery } from "@/features/landing/sections/shade-gallery";
-import { SwatchStudio } from "@/features/landing/sections/swatch-studio";
+import { SwatchStudioClient } from "@/components/swatch-studio-client";
 
 export default function HomePage() {
   return (
@@ -19,7 +19,7 @@ export default function HomePage() {
       <div id="hero-scroll-end" className="w-full h-px pointer-events-none" aria-hidden="true" />
       <IngredientTicker />
       <ShadeGallery />
-      <SwatchStudio />
+      <SwatchStudioClient />
       <Formula />
       <Ritual />
       <Founders />
