@@ -12,6 +12,10 @@
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:ai": "python apps/shade-recom/main.py",
+    "build": "echo \"No build required\"",
+    "build:web": "npm run build --workspace=apps/web",
+    "start": "node apps/api/src/server.js",
+    "seed": "npm run seed --workspace=apps/api",
     "install:all": "npm install"
   },
   "allowScripts": {
